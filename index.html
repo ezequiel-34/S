@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Para Mi Amiga</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script:wght@400;600&display=swap');
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(#1a0033, #330022);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    canvas { 
+      position: absolute; 
+      top:0; left:0; 
+      width:100%; height:100%; 
+      z-index: 1; 
+    }
+
+    .notebook {
+      width: 82vw;
+      max-width: 380px;
+      height: 82vh;
+      max-height: 580px;
+      background: #fff9f0;
+      border: 22px solid #ff4d94;
+      border-radius: 25px;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.8);
+      position: relative;
+      z-index: 3;
+      overflow: hidden;
+    }
+
+    .page {
+      position: absolute;
+      width: 48%;
+      height: calc(100% - 55px);
+      top: 27px;
+      background: #fffef5;
+      background-image: linear-gradient(#e8e0d0 1px, transparent 1px), linear-gradient(90deg, #e8e0d0 1px, transparent 1px);
+      background-size: 18px 18px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+      padding: 22px 18px;
+      display: none;
+      flex-direction: column;
+      border-radius: 8px;
+    }
+
+    .left  { left: 20px; }
+    .right { right: 20px; }
+
+    .page.active { display: flex; }
+
+    .photo {
+      width: 100%;
+      height: 155px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 5px solid #ffe0f0;
+    }
+
+    h1 { font-family: 'Great Vibes', cursive; font-size: 2.05em; text-align:center; color:#c71585; margin-bottom:10px; }
+    h2 { font-family: 'Dancing Script', cursive; font-size: 1.52em; color:#c71585; text-align:center; margin:8px 0 12px; }
+    .text { font-family: 'Dancing Script', cursive; font-size: 1.04em; line-height: 1.68; color:#333; flex:1; }
+
+    .portada {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(#ff4d94, #c71585);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+      border-radius: 15px;
+    }
+
+    .nav button {
+      position: absolute;
+      bottom: 18px;
+      padding: 11px 26px;
+      background: #ff4d94;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      z-index: 5;
+    }
+    .prev { left: 25px; }
+    .next { right: 25px; }
+  </style>
+</head>
+<body>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="notebook">
+
+    <!-- Portada -->
+    <div class="portada" id="portada">
+      <h1>Para Mi Amiga</h1>
+      <p style="margin:22px 0 38px; font-size:1.25em;">Con cariño</p>
+      <button onclick="openBook()" style="padding:16px 42px; font-size:1.15em;">Abrir Libro ❤️</button>
+    </div>
+
+    <!-- Páginas -->
+    <div class="page left active" id="left1"><h2>Te pido perdón</h2><img src="Foto1.jpg" class="photo"></div>
+    <div class="page right active" id="right1"><h2>Te pido perdón</h2><p class="text">Te extraño y quiero que me perdones, sé que soy un pelotudo... pero lo que te dije era todo mentira. Me duele que lo hayas tomado en serio y de verdad te pido perdón 💔</p></div>
+
+    <div class="page left" id="left2"><h2>Nuestra amistad</h2><img src="Foto2.jpg" class="photo"></div>
+    <div class="page right" id="right2"><h2>Nuestra amistad</h2><p class="text">Te conozco desde los 5 años y desde ahí nunca nos separamos. Aunque parezca que sos más grande que yo, jamás te dejé de lado por nadie... sos muy importante para mí ♥️</p></div>
+
+    <div class="page left" id="left3"><h2>Perdón</h2><img src="Foto3.jpg" class="photo"></div>
+    <div class="page right" id="right3"><h2>Perdón</h2><p class="text">Perdón por todo lo que hice... pero yo te quiero mucho brother 🥺</p></div>
+
+    <div class="page left" id="left4"><h2>Te admiro</h2><img src="Foto4.jpg" class="photo"></div>
+    <div class="page right" id="right4"><h2>Te admiro</h2><p class="text">Admiro lo fuerte que sos. Sos una persona muy trabajadora que, sin importar su situación, siempre sigue adelante. Y aunque tengas bajones, siempre te levantás... eso te hace increíble 💖</p></div>
+
+    <div class="nav">
+      <button class="prev" onclick="prevPage()">← Anterior</button>
+      <button class="next" onclick="nextPage()">Siguiente →</button>
+    </div>
+  </div>
+
+  <audio id="music" loop><source src="musica.mp3" type="audio/mpeg"></audio>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    const particles = [];
+    const symbols = ['❤️','💖','🍫','🍭','🍬','🌟'];
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height - canvas.height;
+        this.size = Math.random() * 24 + 15;
+        this.speed = Math.random() * 2.5 + 1.2;
+        this.symbol = symbols[Math.floor(Math.random()*symbols.length)];
+      }
+      update() { this.y += this.speed; if(this.y > canvas.height) this.reset(); }
+      draw() { ctx.font = `${this.size}px Arial`; ctx.fillText(this.symbol, this.x, this.y); }
+    }
+    for(let i = 0; i < 45; i++) particles.push(new Particle());
+
+    function animate() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    let current = 1;
+    const music = document.getElementById('music');
+
+    function openBook() {
+      document.getElementById('portada').style.display = 'none';
+      music.play().catch(() => {});
+    }
+
+    function nextPage() {
+      if (current >= 4) return;
+      document.getElementById(`left${current}`).classList.remove('active');
+      document.getElementById(`right${current}`).classList.remove('active');
+      current++;
+      document.getElementById(`left${current}`).classList.add('active');
+      document.getElementById(`right${current}`).classList.add('active');
+    }
+
+    function prevPage() {
+      if (current <= 1) return;
+      document.getElementById(`left${current}`).classList.remove('active');
+      document.getElementById(`right${current}`).classList.remove('active');
+      current--;
+      document.getElementById(`left${current}`).classList.add('active');
+      document.getElementById(`right${current}`).classList.add('active');
+    }
+  </script>
+</body>
+</html>
